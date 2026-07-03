@@ -137,26 +137,12 @@
     .cal-cell.has-record { cursor:pointer; }
     .cal-cell.has-record:active { opacity:.65; }
 
-    /* ── 점 / 선 인디케이터 ── */
-    /* 인디케이터는 셀 하단에 절대 위치 — 숫자 중앙 정렬에 영향 없음 */
-    .cal-cell { overflow:visible; }
-    .cal-ind { position:absolute; left:0; right:0; bottom:4px; display:flex; flex-direction:column; align-items:center; gap:2px; overflow:visible; }
-    /* 당일: 작은 원형 점 */
-    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
-    /* 선 래퍼: 셀 전체 너비 */
-    .bar-row { width:100%; height:4px; position:relative; overflow:visible; }
-    /* 선은 bar-row 기준 absolute, left/right -3px로 gap 채움 */
-    .cal-bar.line-s,
-    .cal-bar.line-m,
-    .cal-bar.line-e { position:absolute; top:0; bottom:0; background:var(--green); }
-    .cal-bar.line-s { left:50%; right:-3px; border-radius:2px 0 0 2px; }
-    .cal-bar.line-m { left:-3px; right:-3px; }
-    .cal-bar.line-e { left:-3px; right:50%; border-radius:0 2px 2px 0; }
-    /* 주 경계: 다음 행으로 이어질 때 끝단 둥글게 */
-    .cal-bar.line-s.row-end   { right:0;  border-radius:2px; }
-    .cal-bar.line-m.row-start { left:0;   border-radius:2px 0 0 2px; }
-    .cal-bar.line-m.row-end   { right:0;  border-radius:0 2px 2px 0; }
-    .cal-bar.line-e.row-start { left:0;   border-radius:2px; }
+    /* ── 점 인디케이터 (당일 기록) ── */
+    .cal-dot-wrap { position:absolute; left:0; right:0; bottom:4px; display:flex; justify-content:center; gap:3px; }
+    .cal-dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
+    /* 선 오버레이 컨테이너 */
+    .cal-wrap { position:relative; overflow:visible; }
+    #calLines { position:absolute; inset:0; pointer-events:none; overflow:visible; }
 
     /* Day detail popup */
     .day-popup {
@@ -275,10 +261,10 @@
   <!-- 버튼 -->
   <div class="btn-row">
     <button class="btn btn-enter" id="btnEnter" onclick="pressEnter()">
-      <span class="btn-icon">🟢</span>입차
+      <span class="btn-icon">🅿</span>입차
     </button>
     <button class="btn btn-exit" id="btnExit" onclick="pressExit()" disabled>
-      <span class="btn-icon">🔴</span>출차
+      <span class="btn-icon">🚗</span>출차
     </button>
   </div>
 
@@ -309,7 +295,10 @@
       <div class="cal-dayname sat">금</div>
       <div class="cal-dayname sat">토</div>
     </div>
-    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-wrap">
+      <div class="cal-grid" id="calGrid"></div>
+      <div id="calLines"></div>
+    </div>
   </div>
 
   <!-- 기록 추가 -->
@@ -602,7 +591,7 @@ function renderCalendar() {
   }
 
   for (let d=1; d<=daysInMonth; d++) {
-    const dow = (firstDow+d-1)%7; // 0=일,6=토
+    const dow = (firstDow+d-1)%7;
     const c = document.createElement('div');
     let cls = 'cal-cell';
     if (dow===0) cls += ' sun'; else if (dow===6) cls += ' sat';
@@ -610,38 +599,20 @@ function renderCalendar() {
     const m = markers[d];
     if (m) cls += ' has-record';
     c.className = cls;
-    if (m?.lines?.length) c.style.zIndex = '1'; // 선이 이웃 셀 위에 오도록
+    c.dataset.day = d;
 
-    // 인디케이터 HTML 생성
-    let indHTML = '';
+    // 점만 셀 안에 (선은 오버레이에서 그림)
+    let dotHTML = '';
+    const hasDot = m?.dots > 0;
     const activeTodayOnly = d===today && isParkedToday && !m;
-    if (activeTodayOnly) {
-      indHTML = '<div class="cal-bar dot" style="background:var(--orange)"></div>';
-    } else if (m) {
-      // 점 (당일 기록)
-      for (let i=0; i<m.dots; i++)
-        indHTML += '<div class="cal-bar dot"></div>';
-      // 선 (다박자 기록) — bar-row 래퍼로 감싸 gap을 넘어 연결
-      m.lines.forEach(type => {
-        const isSun = dow===0, isSat = dow===6;
-        let barCls = 'cal-bar ';
-        if (type==='s') {
-          barCls += 'line-s';
-          if (isSat) barCls += ' row-end';
-        } else if (type==='e') {
-          barCls += 'line-e';
-          if (isSun) barCls += ' row-start';
-        } else {
-          barCls += 'line-m';
-          if (isSun) barCls += ' row-start';
-          else if (isSat) barCls += ' row-end';
-        }
-        indHTML += `<div class="bar-row"><div class="${barCls}"></div></div>`;
-      });
+    if (hasDot) {
+      const dots = Array(m.dots).fill('<div class="cal-dot"></div>').join('');
+      dotHTML = `<div class="cal-dot-wrap">${dots}</div>`;
+    } else if (activeTodayOnly) {
+      dotHTML = `<div class="cal-dot-wrap"><div class="cal-dot" style="background:var(--orange)"></div></div>`;
     }
 
-    const indWrap = indHTML ? `<div class="cal-ind">${indHTML}</div>` : '';
-    c.innerHTML = `<span class="cal-num">${d}</span>${indWrap}`;
+    c.innerHTML = `<span class="cal-num">${d}</span>${dotHTML}`;
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     c.onclick = () => openAddForDate(dateStr, d, year, month);
     grid.appendChild(c);
@@ -654,6 +625,89 @@ function renderCalendar() {
     c.innerHTML = `<span class="cal-num">${d}</span>`;
     grid.appendChild(c);
   }
+
+  // 선은 실제 렌더된 위치를 재고 오버레이에 그림
+  requestAnimationFrame(drawSessionLines);
+}
+
+function drawSessionLines() {
+  const grid    = document.getElementById('calGrid');
+  const linesEl = document.getElementById('calLines');
+  if (!linesEl) return;
+  linesEl.innerHTML = '';
+
+  const wrap     = linesEl.parentElement; // .cal-wrap
+  const wrapRect = wrap.getBoundingClientRect();
+
+  // day → 셀 요소 매핑
+  const dayToCell = {};
+  Array.from(grid.children).forEach(cell => {
+    const d = parseInt(cell.dataset.day);
+    if (!isNaN(d)) dayToCell[d] = cell;
+  });
+
+  const n = new Date();
+  const year = n.getFullYear(), month = n.getMonth();
+
+  Object.values(state.sessions).forEach(s => {
+    const ed   = new Date(s.entry);
+    const xd   = new Date(s.exit);
+    const edMid = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
+    const xdMid = new Date(xd.getFullYear(), xd.getMonth(), xd.getDate());
+    if (edMid.getTime() === xdMid.getTime()) return; // 당일 → 점만
+
+    // 이번 달 범위로 클램프
+    const monthStart = new Date(year, month, 1);
+    const monthEnd   = new Date(year, month+1, 0);
+    if (xdMid < monthStart || edMid > monthEnd) return;
+    const startDay = Math.max(edMid, monthStart).getDate();
+    const endDay   = Math.min(xdMid, monthEnd).getDate();
+    const isActualStart = edMid >= monthStart;
+    const isActualEnd   = xdMid <= monthEnd;
+
+    // 행별로 선 분할
+    let curDay = startDay;
+    while (curDay <= endDay) {
+      const startCell = dayToCell[curDay];
+      if (!startCell) { curDay++; continue; }
+      const startCR = startCell.getBoundingClientRect();
+
+      // 같은 행의 마지막 날 찾기
+      let rowEndDay = curDay;
+      while (rowEndDay < endDay) {
+        const nextCell = dayToCell[rowEndDay + 1];
+        if (!nextCell) break;
+        if (Math.abs(nextCell.getBoundingClientRect().top - startCR.top) > 5) break;
+        rowEndDay++;
+      }
+
+      const endCell = dayToCell[rowEndDay];
+      const endCR   = endCell.getBoundingClientRect();
+
+      const segIsStart = (curDay === startDay) && isActualStart;
+      const segIsEnd   = (rowEndDay === endDay) && isActualEnd;
+
+      const lineH  = 4;
+      // Y: 모든 셀의 bottom 기준으로 동일하게 계산 (startCR 기준)
+      const lineY  = startCR.bottom - wrapRect.top - lineH - 4;
+      const lineX1 = segIsStart
+        ? startCR.left - wrapRect.left + startCR.width / 2
+        : startCR.left - wrapRect.left;
+      const lineX2 = segIsEnd
+        ? endCR.right  - wrapRect.left - endCR.width / 2
+        : endCR.right  - wrapRect.left;
+
+      const rTL = segIsStart ? '2px' : '0';
+      const rTR = segIsEnd   ? '2px' : '0';
+      const div = document.createElement('div');
+      div.style.cssText = `position:absolute;top:${lineY}px;left:${lineX1}px;`
+        + `width:${lineX2-lineX1}px;height:${lineH}px;`
+        + `background:var(--green);border-radius:${rTL} ${rTR} ${rTR} ${rTL};`;
+      linesEl.appendChild(div);
+
+      curDay = rowEndDay + 1;
+    }
+  });
 }
 
 function openAddForDate(dateStr, day, year, month) {
