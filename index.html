@@ -84,11 +84,11 @@
 
     /* Buttons */
     .btn-row { flex-shrink:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .btn { padding:13px 10px; border:none; border-radius:14px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .1s; -webkit-user-select:none; user-select:none; }
-    .btn:active   { transform:scale(.94); }
-    .btn:disabled { opacity:.3; pointer-events:none; }
-    .btn-enter { background:var(--green-bg); color:var(--green); }
-    .btn-exit  { background:var(--red-bg);   color:var(--red); }
+    .btn { padding:13px 10px; border:none; border-radius:18px; font-family:inherit; font-size:16px; font-weight:800; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .1s, box-shadow .1s; -webkit-user-select:none; user-select:none; letter-spacing:-.02em; }
+    .btn:active   { transform:scale(.93) translateY(2px); box-shadow:0 1px 4px rgba(0,0,0,.12) !important; }
+    .btn:disabled { opacity:.3; pointer-events:none; box-shadow:none !important; }
+    .btn-enter { background:#1a9e5f; color:#fff; box-shadow:0 4px 0 #0d7a45, 0 6px 16px rgba(26,158,95,.28); }
+    .btn-exit  { background:#fff; color:#dc2626; border:2px solid #fca5a5; box-shadow:0 4px 0 #fca5a5, 0 6px 12px rgba(220,38,38,.12); }
     .btn-icon  { font-size:22px; }
 
     /* Progress */
@@ -138,26 +138,21 @@
     .cal-cell.has-record:active { opacity:.65; }
 
     /* ── 점 / 선 인디케이터 ── */
-    /* 셀이 overflow:visible이어야 선이 gap을 넘어 연결됨 */
+    /* 인디케이터는 셀 하단에 절대 위치 — 숫자 중앙 정렬에 영향 없음 */
     .cal-cell { overflow:visible; }
+    .cal-ind { position:absolute; left:0; right:0; bottom:4px; display:flex; flex-direction:column; align-items:center; gap:2px; overflow:visible; }
     /* 당일: 작은 원형 점 */
-    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
-    /* 선 전용 래퍼: 셀 전체 너비 차지, 내부 absolute로 gap 넘어 연결 */
-    .bar-row {
-      align-self:stretch; height:4px; flex-shrink:0;
-      position:relative; overflow:visible;
-    }
-    /* 선들은 bar-row 기준 absolute — left/right에 -3px 써서 3px gap을 채움 */
+    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
+    /* 선 래퍼: 셀 전체 너비 */
+    .bar-row { width:100%; height:4px; position:relative; overflow:visible; }
+    /* 선은 bar-row 기준 absolute, left/right -3px로 gap 채움 */
     .cal-bar.line-s,
     .cal-bar.line-m,
-    .cal-bar.line-e { position:absolute; top:0; height:100%; background:var(--green); }
-    /* 시작: 셀 중앙 → 오른쪽 끝 +3px (다음 셀 gap까지) */
+    .cal-bar.line-e { position:absolute; top:0; bottom:0; background:var(--green); }
     .cal-bar.line-s { left:50%; right:-3px; border-radius:2px 0 0 2px; }
-    /* 중간: 왼쪽 끝 -3px → 오른쪽 끝 +3px */
-    .cal-bar.line-m { left:-3px; right:-3px; border-radius:0; }
-    /* 끝: 왼쪽 끝 -3px → 셀 중앙 */
+    .cal-bar.line-m { left:-3px; right:-3px; }
     .cal-bar.line-e { left:-3px; right:50%; border-radius:0 2px 2px 0; }
-    /* 주 경계 cap: 줄이 계속되지만 행이 바뀜 → 끝을 둥글게 */
+    /* 주 경계: 다음 행으로 이어질 때 끝단 둥글게 */
     .cal-bar.line-s.row-end   { right:0;  border-radius:2px; }
     .cal-bar.line-m.row-start { left:0;   border-radius:2px 0 0 2px; }
     .cal-bar.line-m.row-end   { right:0;  border-radius:0 2px 2px 0; }
@@ -645,7 +640,8 @@ function renderCalendar() {
       });
     }
 
-    c.innerHTML = `<span class="cal-num">${d}</span>${indHTML}`;
+    const indWrap = indHTML ? `<div class="cal-ind">${indHTML}</div>` : '';
+    c.innerHTML = `<span class="cal-num">${d}</span>${indWrap}`;
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     c.onclick = () => openAddForDate(dateStr, d, year, month);
     grid.appendChild(c);
