@@ -136,8 +136,19 @@
     .cal-cell.today .cal-num { color:#4f46e5; font-weight:700; }
     .cal-cell.has-record { cursor:pointer; }
     .cal-cell.has-record:active { opacity:.65; }
-    .cal-dot { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
-    .cal-dot.exit-only { background:none; border:1.5px solid var(--green); }
+
+    /* ── 점 / 선 인디케이터 ── */
+    .cal-bar { height:3px; flex-shrink:0; border-radius:0; }
+    /* 당일: 작은 원형 점 */
+    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
+    /* 다박자 스팬: 시작(오른쪽 절반), 중간(전체), 끝(왼쪽 절반) */
+    .cal-bar.line-s { width:50%; margin-left:50%; background:var(--green); border-radius:2px 0 0 2px; }
+    .cal-bar.line-m { width:100%; background:var(--green); }
+    .cal-bar.line-e { width:50%; background:var(--green); border-radius:0 2px 2px 0; }
+    /* 줄 끝 처리: 주 마지막(토) → 오른쪽 둥글게, 주 처음(일) → 왼쪽 둥글게 */
+    .cal-bar.cap-r  { border-radius:0 2px 2px 0 !important; }
+    .cal-bar.cap-l  { border-radius:2px 0 0 2px !important; }
+    .cal-bar.cap-lr { border-radius:2px !important; }
 
     /* Day detail popup */
     .day-popup {
@@ -533,13 +544,39 @@ function renderCalendar() {
   const n = new Date();
   const year = n.getFullYear(), month = n.getMonth(), today = n.getDate();
 
-  const entryDays = {}, exitOnlyDays = {};
+  // 날별 인디케이터 정보 계산
+  // markers[day] = {dots: N, lines: [{type:'s'|'m'|'e'}]}
+  const markers = {};
+  const mark = (d, obj) => {
+    if (!markers[d]) markers[d] = {dots:0, lines:[]};
+    if (obj.dot) markers[d].dots++;
+    if (obj.line) markers[d].lines.push(obj.line);
+  };
+
   Object.values(state.sessions).forEach(s => {
-    const ed = new Date(s.entry), xd = new Date(s.exit);
-    if (ed.getFullYear()===year && ed.getMonth()===month)
-      entryDays[ed.getDate()] = (entryDays[ed.getDate()]||0)+1;
-    if (xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()!==ed.getDate())
-      if (!entryDays[xd.getDate()]) exitOnlyDays[xd.getDate()] = true;
+    const ed = new Date(s.entry);
+    const xd = new Date(s.exit);
+    const edMid = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
+    const xdMid = new Date(xd.getFullYear(), xd.getMonth(), xd.getDate());
+    const sameDay = edMid.getTime() === xdMid.getTime();
+
+    if (sameDay) {
+      // 당일 → 점
+      if (ed.getFullYear()===year && ed.getMonth()===month)
+        mark(ed.getDate(), {dot:true});
+    } else {
+      // 다박자 → 선: 각 날짜별로 s(시작)/m(중간)/e(끝) 표시
+      let cur = new Date(edMid);
+      while (cur <= xdMid) {
+        if (cur.getFullYear()===year && cur.getMonth()===month) {
+          const d = cur.getDate();
+          const isS = cur.getTime()===edMid.getTime();
+          const isE = cur.getTime()===xdMid.getTime();
+          mark(d, {line: isS?'s': isE?'e': 'm'});
+        }
+        cur = new Date(cur.getTime() + 86400000);
+      }
+    }
   });
 
   const isParkedToday = !!state.current?.entry;
@@ -557,23 +594,44 @@ function renderCalendar() {
   }
 
   for (let d=1; d<=daysInMonth; d++) {
-    const dow = (firstDow+d-1)%7;
+    const dow = (firstDow+d-1)%7; // 0=일,6=토
     const c = document.createElement('div');
     let cls = 'cal-cell';
     if (dow===0) cls += ' sun'; else if (dow===6) cls += ' sat';
     if (d===today) cls += ' today';
-    const hasEntry    = !!entryDays[d];
-    const hasExitOnly = !!exitOnlyDays[d];
-    const activeTodayOnly = d===today && isParkedToday && !hasEntry;
-    if (hasEntry || hasExitOnly) cls += ' has-record';
+    const m = markers[d];
+    if (m) cls += ' has-record';
     c.className = cls;
 
-    let dot = '';
-    if (hasEntry)          dot = '<div class="cal-dot"></div>';
-    else if (hasExitOnly)  dot = '<div class="cal-dot exit-only"></div>';
-    else if (activeTodayOnly) dot = '<div class="cal-dot" style="background:var(--orange)"></div>';
+    // 인디케이터 HTML 생성
+    let indHTML = '';
+    const activeTodayOnly = d===today && isParkedToday && !m;
+    if (activeTodayOnly) {
+      indHTML = '<div class="cal-bar dot" style="background:var(--orange)"></div>';
+    } else if (m) {
+      // 점 (당일 기록)
+      for (let i=0; i<m.dots; i++)
+        indHTML += '<div class="cal-bar dot"></div>';
+      // 선 (다박자 기록)
+      m.lines.forEach(type => {
+        const isSun = dow===0, isSat = dow===6;
+        let barCls = 'cal-bar ';
+        if (type==='s') {
+          barCls += 'line-s';
+          if (isSat) barCls += ' cap-lr'; // 시작+끝이 같은 주 마지막
+        } else if (type==='e') {
+          barCls += 'line-e';
+          if (isSun) barCls += ' cap-lr'; // 끝이 주 첫날
+        } else {
+          barCls += 'line-m';
+          if (isSun) barCls += ' cap-l';
+          else if (isSat) barCls += ' cap-r';
+        }
+        indHTML += `<div class="${barCls}"></div>`;
+      });
+    }
 
-    c.innerHTML = `<span class="cal-num">${d}</span>${dot}`;
+    c.innerHTML = `<span class="cal-num">${d}</span>${indHTML}`;
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     c.onclick = () => openAddForDate(dateStr, d, year, month);
     grid.appendChild(c);
