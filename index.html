@@ -22,7 +22,12 @@
       --text:#1a1a2e; --text2:#555; --text3:#aaa;
       --bg:#f2f4f8; --card:#fff; --border:#efefef;
     }
-    html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif; color:var(--text); }
+    html,body {
+      height: 100%; overflow: hidden;
+      background: var(--bg);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
 
     /* ── Setup ── */
     #setupScreen { display:none; height:100%; overflow-y:auto; padding:40px 20px 60px; }
@@ -36,90 +41,167 @@
     .setup-steps li::before { content:counter(step); min-width:24px; height:24px; background:var(--blue); color:#fff; border-radius:50%; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     code { background:#f0f4f8; padding:2px 6px; border-radius:5px; font-size:12px; color:var(--blue); }
 
-    /* ── App: full-screen ── */
+    /* ── App layout ── */
     #app {
-      display:none; height:100%; max-width:480px; margin:0 auto;
-      flex-direction:column;
-      padding:0 12px;
-      padding-top:env(safe-area-inset-top,0px);
-      padding-bottom:env(safe-area-inset-bottom,0px);
-      gap:8px;
+      display: none;
+      height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      flex-direction: column;
+      padding: 0 14px;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 6px);
+      gap: 8px;
     }
 
     /* Header */
-    .app-header { flex-shrink:0; display:flex; justify-content:space-between; align-items:center; padding:12px 2px 2px; }
-    .app-header h1 { font-size:17px; font-weight:700; }
-    .app-header p  { font-size:11px; color:var(--text3); }
+    .app-header {
+      flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 2px 0;
+    }
+    .app-header h1 { font-size: 17px; font-weight: 700; }
+    .app-header p  { font-size: 11px; color: var(--text3); }
 
     /* Status card */
-    .status-card { flex-shrink:0; background:var(--card); border-radius:16px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-    .status-top  { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+    .status-card {
+      flex-shrink: 0;
+      background: var(--card); border-radius: 16px; padding: 11px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .status-row-top { display:flex; align-items:center; justify-content:space-between; }
     .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; }
     .badge.idle   { background:#eef2ff; color:#4f6ef7; }
     .badge.parked { background:#fff4e6; color:var(--orange); }
     .badge-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
     .badge.parked .badge-dot { animation:blink 1.4s ease-in-out infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .idle-hint { font-size:13px; color:var(--text3); margin-top:4px; }
+    .parked-info { display:none; }
     .entry-time-val { font-size:12px; color:var(--text2); font-weight:500; }
-    .idle-hint { font-size:13px; color:var(--text3); padding:4px 0 0; }
-    .live-timer { font-size:34px; font-weight:700; letter-spacing:-1.5px; color:var(--orange); font-variant-numeric:tabular-nums; line-height:1.15; }
-    .already-left-link { background:none; border:none; padding:0; font-family:inherit; font-size:11px; color:var(--purple); font-weight:600; cursor:pointer; margin-top:2px; display:block; text-decoration:underline; text-underline-offset:2px; }
+    .live-timer { font-size:30px; font-weight:700; letter-spacing:-1px; color:var(--orange); font-variant-numeric:tabular-nums; line-height:1.2; margin-top:2px; }
+    .already-left-link { background:none; border:none; padding:0; font-family:inherit; font-size:11px; color:var(--purple); font-weight:600; cursor:pointer; margin-top:2px; display:inline-block; text-decoration:underline; text-underline-offset:2px; }
 
     /* Buttons */
     .btn-row { flex-shrink:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .btn { padding:14px 10px; border:none; border-radius:14px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px; transition:transform .1s; -webkit-user-select:none; user-select:none; }
+    .btn { padding:13px 10px; border:none; border-radius:14px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .1s; -webkit-user-select:none; user-select:none; }
     .btn:active   { transform:scale(.94); }
     .btn:disabled { opacity:.3; pointer-events:none; }
     .btn-enter { background:var(--green-bg); color:var(--green); }
     .btn-exit  { background:var(--red-bg);   color:var(--red); }
-    .btn-icon  { font-size:24px; }
+    .btn-icon  { font-size:22px; }
 
     /* Progress */
-    .progress-card { flex-shrink:0; background:var(--card); border-radius:16px; padding:10px 14px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-    .progress-info { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px; }
-    .progress-main   { font-size:17px; font-weight:700; letter-spacing:-.5px; }
-    .progress-remain { font-size:11px; color:var(--text2); margin-left:6px; }
+    .progress-card {
+      flex-shrink: 0;
+      background: var(--card); border-radius: 16px; padding: 10px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .progress-nums { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+    .progress-main   { font-size:16px; font-weight:700; }
+    .progress-remain { font-size:11px; color:var(--text2); }
     .progress-pct    { font-size:11px; color:var(--text3); }
     .progress-bar  { height:7px; background:#eee; border-radius:4px; overflow:hidden; }
     .progress-fill { height:100%; border-radius:4px; transition:width .4s ease; background:linear-gradient(90deg,#43cea2,#185a9d); }
     .progress-fill.warn   { background:linear-gradient(90deg,#f7971e,#ffd200); }
     .progress-fill.danger { background:linear-gradient(90deg,#e53935,#e35d5b); }
 
-    /* History section */
-    .history-section { flex:1; display:flex; flex-direction:column; min-height:0; background:var(--card); border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; }
-    .history-top { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--border); }
-    .section-title { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); }
-    .view-btns { display:flex; background:#f4f4f6; border-radius:7px; padding:2px; gap:1px; }
-    .view-btn { border:none; background:none; border-radius:5px; padding:3px 10px; font-family:inherit; font-size:11px; font-weight:700; color:var(--text3); cursor:pointer; transition:all .15s; }
-    .view-btn.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+    /* Calendar section */
+    .cal-section {
+      flex-shrink: 0;
+      background: var(--card); border-radius: 16px; padding: 10px 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .cal-title  { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); }
+    .cal-list-btn { background:none; border:none; font-family:inherit; font-size:11px; font-weight:700; color:var(--blue); cursor:pointer; padding:0; }
 
-    /* Calendar */
-    #viewCal { flex:1; display:flex; flex-direction:column; padding:8px 10px; min-height:0; }
-    .cal-daynames { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:3px; }
-    .cal-dayname  { text-align:center; font-size:9px; font-weight:700; color:var(--text3); padding:2px 0; }
+    .cal-daynames { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+    .cal-dayname  { text-align:center; font-size:9px; font-weight:700; color:var(--text3); }
     .cal-dayname.sun { color:#e74c3c; }
     .cal-dayname.sat { color:#3b82f6; }
-    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; flex:1; }
-    .cal-cell { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border-radius:8px; cursor:default; min-height:0; }
-    .cal-num { font-size:12px; line-height:1; }
+
+    /* ★ 셀에 aspect-ratio:1 → 숫자가 항상 보이는 정사각형 셀 */
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+    .cal-cell {
+      aspect-ratio: 1;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:2px; border-radius:7px; cursor:default; position:relative;
+    }
+    .cal-num { font-size:12px; font-weight:500; line-height:1; }
     .cal-cell.sun .cal-num { color:#e74c3c; }
     .cal-cell.sat .cal-num { color:#3b82f6; }
     .cal-cell.other .cal-num { color:#ddd; }
     .cal-cell.today { background:#eef2ff; }
     .cal-cell.today .cal-num { color:#4f46e5; font-weight:700; }
     .cal-cell.has-record { cursor:pointer; }
-    .cal-cell.has-record:active { opacity:.6; }
-    .cal-dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
-    .cal-dot.exit-dot { background:none; border:1.5px solid var(--green); width:5px; height:5px; }
-    .cal-cell.active-today .cal-dot { background:var(--orange); }
+    .cal-cell.has-record:active { opacity:.65; }
+    .cal-dot { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .cal-dot.exit-only { background:none; border:1.5px solid var(--green); }
 
     /* Day detail popup */
-    .day-popup { display:none; position:absolute; bottom:60px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#fff; padding:12px 16px; border-radius:14px; font-size:12px; white-space:pre-line; text-align:center; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,.35); max-width:260px; line-height:1.7; pointer-events:none; }
+    .day-popup {
+      display:none; position:fixed; bottom:68px; left:50%; transform:translateX(-50%);
+      background:#1a1a2e; color:#fff; padding:12px 18px; border-radius:14px;
+      font-size:12px; white-space:pre-line; text-align:center; z-index:300;
+      box-shadow:0 4px 20px rgba(0,0,0,.35); max-width:88vw; line-height:1.9;
+      pointer-events:none; transition:opacity .2s;
+    }
     .day-popup.show { display:block; }
 
-    /* History list */
-    #viewList { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; display:none; }
-    .session-item { display:flex; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); }
+    /* Add button */
+    .add-btn {
+      flex-shrink:0;
+      padding:11px; background:none; border:1.5px dashed #d4dae6; border-radius:14px;
+      font-family:inherit; font-size:13px; font-weight:600; color:var(--text3); cursor:pointer;
+    }
+    .add-btn:active { border-color:var(--blue); color:var(--blue); }
+
+    /* ── Modals ── */
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:var(--card); border-radius:24px 24px 0 0; padding:18px; width:100%; max-width:480px; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+    .overlay.open .modal { transform:translateY(0); }
+    .modal-handle { width:40px; height:4px; background:#dde1e8; border-radius:2px; margin:0 auto 16px; }
+    .modal-title  { font-size:17px; font-weight:700; margin-bottom:5px; }
+    .modal-sub    { font-size:12px; color:var(--text3); margin-bottom:16px; line-height:1.5; }
+
+    .mode-toggle { display:grid; grid-template-columns:1fr 1fr; background:#f0f2f6; border-radius:11px; padding:3px; margin-bottom:16px; }
+    .mode-btn    { padding:9px; border:none; border-radius:8px; font-family:inherit; font-size:12px; font-weight:600; color:var(--text3); background:none; cursor:pointer; transition:all .2s; }
+    .mode-btn.active { background:var(--card); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+
+    .form-group { margin-bottom:12px; }
+    .form-label { font-size:12px; font-weight:600; color:var(--text2); margin-bottom:4px; display:block; }
+    .form-input { width:100%; padding:11px 12px; border:1.5px solid #e4e8f0; border-radius:11px; font-family:inherit; font-size:15px; color:var(--text); outline:none; background:#fff; transition:border-color .2s; appearance:none; -webkit-appearance:none; }
+    .form-input:focus { border-color:var(--blue); }
+    .form-row  { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .dur-row   { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .dur-unit  { display:flex; align-items:center; gap:6px; }
+    .dur-unit .form-input { text-align:center; }
+    .dur-label { font-size:14px; font-weight:600; color:var(--text2); white-space:nowrap; }
+
+    .section-divider { font-size:11px; font-weight:700; color:var(--text3); letter-spacing:.5px; margin:4px 0 10px; }
+
+    .calc-box { background:var(--bg); border-radius:11px; padding:11px 12px; font-size:13px; color:var(--text2); margin-bottom:16px; min-height:42px; display:flex; align-items:center; }
+    .calc-box strong { color:var(--text); font-weight:700; }
+
+    .modal-submit { width:100%; padding:15px; background:var(--text); color:#fff; border:none; border-radius:13px; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; }
+    .modal-submit:active { opacity:.75; }
+    .modal-cancel { width:100%; padding:11px; background:none; border:none; font-family:inherit; font-size:14px; color:var(--text3); cursor:pointer; margin-top:3px; }
+
+    .entry-recap { background:var(--purple-bg); border-radius:11px; padding:11px 12px; margin-bottom:14px; }
+    .entry-recap .recap-label { font-size:10px; font-weight:700; color:var(--purple); letter-spacing:.5px; text-transform:uppercase; margin-bottom:2px; }
+    .entry-recap .recap-val   { font-size:14px; font-weight:600; color:var(--text); }
+
+    /* 목록 sheet */
+    .list-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; opacity:0; pointer-events:none; transition:opacity .25s; display:flex; align-items:flex-end; justify-content:center; }
+    .list-sheet.open { opacity:1; pointer-events:all; }
+    .list-inner { background:var(--card); border-radius:24px 24px 0 0; width:100%; max-width:480px; max-height:70vh; display:flex; flex-direction:column; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); padding-bottom:env(safe-area-inset-bottom,0px); }
+    .list-sheet.open .list-inner { transform:translateY(0); }
+    .list-handle { width:40px; height:4px; background:#dde1e8; border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+    .list-title  { font-size:15px; font-weight:700; padding:12px 18px 8px; flex-shrink:0; border-bottom:1px solid var(--border); }
+    .list-body   { overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
+    .session-item { display:flex; align-items:center; padding:10px 18px; border-bottom:1px solid var(--border); }
     .session-item:last-child { border-bottom:none; }
     .session-dot  { width:6px; height:6px; border-radius:50%; background:#c8d0de; margin-right:10px; flex-shrink:0; }
     .session-info { flex:1; min-width:0; }
@@ -129,40 +211,7 @@
     .session-dur   { font-size:13px; font-weight:700; margin-right:6px; white-space:nowrap; }
     .session-del   { background:none; border:none; font-size:13px; color:#ddd; cursor:pointer; padding:4px; }
     .session-del:active { color:var(--red); }
-    .empty-msg { text-align:center; color:var(--text3); font-size:13px; padding:24px 0; }
-
-    /* Add button */
-    .add-btn { flex-shrink:0; padding:12px; background:none; border:1.5px dashed #d4dae6; border-radius:14px; font-family:inherit; font-size:13px; font-weight:600; color:var(--text3); cursor:pointer; margin-bottom:4px; }
-    .add-btn:active { border-color:var(--blue); color:var(--blue); }
-
-    /* Modals */
-    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s; }
-    .overlay.open { opacity:1; pointer-events:all; }
-    .modal { background:var(--card); border-radius:24px 24px 0 0; padding:18px 18px; width:100%; max-width:480px; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
-    .overlay.open .modal { transform:translateY(0); }
-    .modal-handle { width:40px; height:4px; background:#dde1e8; border-radius:2px; margin:0 auto 16px; }
-    .modal-title  { font-size:17px; font-weight:700; margin-bottom:5px; }
-    .modal-sub    { font-size:12px; color:var(--text3); margin-bottom:16px; line-height:1.5; }
-    .mode-toggle  { display:grid; grid-template-columns:1fr 1fr; background:#f0f2f6; border-radius:11px; padding:3px; margin-bottom:16px; }
-    .mode-btn     { padding:9px; border:none; border-radius:8px; font-family:inherit; font-size:12px; font-weight:600; color:var(--text3); background:none; cursor:pointer; transition:all .2s; }
-    .mode-btn.active { background:var(--card); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.1); }
-    .form-group  { margin-bottom:12px; }
-    .form-label  { font-size:12px; font-weight:600; color:var(--text2); margin-bottom:4px; display:block; }
-    .form-input  { width:100%; padding:11px 12px; border:1.5px solid #e4e8f0; border-radius:11px; font-family:inherit; font-size:15px; color:var(--text); outline:none; background:#fff; transition:border-color .2s; appearance:none; -webkit-appearance:none; }
-    .form-input:focus { border-color:var(--blue); }
-    .form-row  { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .dur-row   { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .dur-unit  { display:flex; align-items:center; gap:6px; }
-    .dur-unit .form-input { text-align:center; }
-    .dur-label { font-size:14px; font-weight:600; color:var(--text2); white-space:nowrap; }
-    .calc-box  { background:var(--bg); border-radius:11px; padding:11px 12px; font-size:13px; color:var(--text2); margin-bottom:16px; min-height:42px; display:flex; align-items:center; }
-    .calc-box strong { color:var(--text); font-weight:700; }
-    .modal-submit  { width:100%; padding:15px; background:var(--text); color:#fff; border:none; border-radius:13px; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; }
-    .modal-submit:active { opacity:.75; }
-    .modal-cancel  { width:100%; padding:11px; background:none; border:none; font-family:inherit; font-size:14px; color:var(--text3); cursor:pointer; margin-top:3px; }
-    .entry-recap       { background:var(--purple-bg); border-radius:11px; padding:11px 12px; margin-bottom:12px; }
-    .entry-recap .recap-label { font-size:10px; font-weight:700; color:var(--purple); letter-spacing:.5px; text-transform:uppercase; margin-bottom:2px; }
-    .entry-recap .recap-val   { font-size:14px; font-weight:600; color:var(--text); }
+    .empty-msg { text-align:center; color:var(--text3); font-size:13px; padding:28px 0; }
   </style>
 </head>
 <body>
@@ -173,13 +222,12 @@
   <div class="setup-title">Firebase 설정 필요</div>
   <div class="setup-sub">아래 안내를 따라 Firebase 설정값을<br>이 파일에 붙여넣어 주세요</div>
   <div class="setup-card">
-    <h3>📋 설정 방법 (약 5분)</h3>
+    <h3>📋 설정 방법</h3>
     <ol class="setup-steps">
-      <li><span><code>console.firebase.google.com</code> 접속 후 구글 로그인</span></li>
-      <li><span>프로젝트 만들기 → 이름 입력 → 프로젝트 만들기</span></li>
-      <li><span>빌드 → Realtime Database → 데이터베이스 만들기 → 테스트 모드</span></li>
-      <li><span>프로젝트 설정 → 웹 앱 추가 (<code>&lt;/&gt;</code>) → <code>firebaseConfig</code> 코드 복사</span></li>
-      <li><span>이 HTML 파일 메모장으로 열어 <code>YOUR_</code>로 시작하는 값들을 교체 후 저장</span></li>
+      <li><span><code>console.firebase.google.com</code> → 구글 로그인</span></li>
+      <li><span>프로젝트 만들기 → 빌드 → Realtime Database → 테스트 모드</span></li>
+      <li><span>프로젝트 설정 → 웹 앱 추가 → <code>firebaseConfig</code> 복사</span></li>
+      <li><span>이 파일 메모장으로 열어 <code>YOUR_</code> 값들 교체 후 저장</span></li>
     </ol>
   </div>
 </div>
@@ -194,18 +242,18 @@
 
   <!-- 상태 -->
   <div class="status-card">
-    <div class="status-top">
+    <div class="status-row-top">
       <div class="badge idle" id="badge"><div class="badge-dot"></div><span id="badgeText">대기중</span></div>
       <div class="entry-time-val" id="entryVal" style="display:none"></div>
     </div>
     <div id="idleHint" class="idle-hint">입차 버튼을 눌러주세요</div>
-    <div id="parkedInfo" style="display:none">
+    <div class="parked-info" id="parkedInfo">
       <div class="live-timer" id="liveTimer">00:00:00</div>
       <button class="already-left-link" onclick="openExitModal()">이미 나가셨나요? 출차 시간 직접 입력 →</button>
     </div>
   </div>
 
-  <!-- 입차/출차 -->
+  <!-- 버튼 -->
   <div class="btn-row">
     <button class="btn btn-enter" id="btnEnter" onclick="pressEnter()">
       <span class="btn-icon">🟢</span>입차
@@ -217,11 +265,9 @@
 
   <!-- 누적 -->
   <div class="progress-card">
-    <div class="progress-info">
-      <div>
-        <span class="progress-main" id="totalNum">0시간 0분</span>
-        <span class="progress-remain" id="remainNum">· 잔여 150시간</span>
-      </div>
+    <div class="progress-nums">
+      <span class="progress-main" id="totalNum">0시간 0분</span>
+      <span class="progress-remain" id="remainNum">잔여 150시간</span>
       <span class="progress-pct" id="progressPct">0.0%</span>
     </div>
     <div class="progress-bar">
@@ -229,34 +275,22 @@
     </div>
   </div>
 
-  <!-- 달력 / 목록 -->
-  <div class="history-section">
-    <div class="history-top">
-      <div class="section-title">이번 달 기록</div>
-      <div class="view-btns">
-        <button class="view-btn active" id="btnCalView"  onclick="setView('cal')">달력</button>
-        <button class="view-btn"        id="btnListView" onclick="setView('list')">목록</button>
-      </div>
+  <!-- ★ 달력 (전체 월 표시, aspect-ratio:1 셀) -->
+  <div class="cal-section">
+    <div class="cal-header">
+      <div class="cal-title" id="calTitle">이번 달 기록</div>
+      <button class="cal-list-btn" onclick="openListSheet()">목록 보기</button>
     </div>
-
-    <!-- 달력 뷰 -->
-    <div id="viewCal">
-      <div class="cal-daynames">
-        <div class="cal-dayname sun">일</div>
-        <div class="cal-dayname">월</div>
-        <div class="cal-dayname">화</div>
-        <div class="cal-dayname">수</div>
-        <div class="cal-dayname">목</div>
-        <div class="cal-dayname sat">토</div>
-        <div class="cal-dayname">일</div>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-daynames">
+      <div class="cal-dayname sun">일</div>
+      <div class="cal-dayname">월</div>
+      <div class="cal-dayname">화</div>
+      <div class="cal-dayname">수</div>
+      <div class="cal-dayname">목</div>
+      <div class="cal-dayname sat">금</div>
+      <div class="cal-dayname sat">토</div>
     </div>
-
-    <!-- 목록 뷰 -->
-    <div id="viewList">
-      <div class="empty-msg" id="emptyMsg">기록이 없어요</div>
-    </div>
+    <div class="cal-grid" id="calGrid"></div>
   </div>
 
   <!-- 기록 추가 -->
@@ -267,27 +301,44 @@
 <!-- 날짜 상세 팝업 -->
 <div class="day-popup" id="dayPopup"></div>
 
-<!-- ━━ Modal A: 출차 시간만 ━━ -->
+<!-- ━━ 목록 시트 ━━ -->
+<div class="list-sheet" id="listSheet" onclick="if(event.target===this)closeListSheet()">
+  <div class="list-inner">
+    <div class="list-handle"></div>
+    <div class="list-title" id="listSheetTitle">이번 달 방문 기록</div>
+    <div class="list-body" id="listBody">
+      <div class="empty-msg">기록이 없어요</div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━ Modal A: 출차 시간 입력 ━━ -->
 <div class="overlay" id="overlayExit" onclick="bgClose('overlayExit',event)">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">출차 시간 입력</div>
-    <div class="modal-sub">실제로 나가신 시간을 입력해 주세요</div>
+    <div class="modal-sub">실제로 나가신 날짜와 시간을 입력해 주세요</div>
     <div class="entry-recap">
       <div class="recap-label">입차 시각 (기록됨)</div>
       <div class="recap-val" id="exitModalEntry">—</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">출차 시각</label>
-      <input class="form-input" type="time" id="eExitTime" oninput="calcExitOnly()">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">출차 날짜</label>
+        <input class="form-input" type="date" id="eExitDate" oninput="calcExitOnly()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">출차 시각</label>
+        <input class="form-input" type="time" id="eExitTime" oninput="calcExitOnly()">
+      </div>
     </div>
-    <div class="calc-box" id="exitCalcBox">시간을 입력하면 자동 계산됩니다</div>
+    <div class="calc-box" id="exitCalcBox">날짜와 시간을 입력하면 자동 계산됩니다</div>
     <button class="modal-submit" onclick="submitExitOnly()">저장</button>
     <button class="modal-cancel" onclick="closeOverlay('overlayExit')">취소</button>
   </div>
 </div>
 
-<!-- ━━ Modal B: 직접 추가 ━━ -->
+<!-- ━━ Modal B: 기록 직접 추가 ━━ -->
 <div class="overlay" id="overlayAdd" onclick="bgClose('overlayAdd',event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -296,23 +347,39 @@
       <button class="mode-btn active" id="modeTimeBtn" onclick="setAddMode('time')">입차·출차 시각 입력</button>
       <button class="mode-btn"        id="modeDurBtn"  onclick="setAddMode('dur')">소요 시간만 입력</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">날짜 <span style="font-weight:400;color:var(--text3)">(입차 날짜)</span></label>
-      <input class="form-input" type="date" id="aDate" oninput="onAddInput()">
-    </div>
+
+    <!-- 시각 모드 -->
     <div id="addModeTime">
+      <div class="section-divider">입차</div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">입차 시각</label>
-          <input class="form-input" type="time" id="aEntry" oninput="onAddInput()">
+          <label class="form-label">날짜</label>
+          <input class="form-input" type="date" id="aEntryDate" oninput="onAddInput()">
         </div>
         <div class="form-group">
-          <label class="form-label">출차 시각</label>
-          <input class="form-input" type="time" id="aExit" oninput="onAddInput()">
+          <label class="form-label">시각</label>
+          <input class="form-input" type="time" id="aEntryTime" oninput="onAddInput()">
+        </div>
+      </div>
+      <div class="section-divider">출차</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">날짜</label>
+          <input class="form-input" type="date" id="aExitDate" oninput="onAddInput()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">시각</label>
+          <input class="form-input" type="time" id="aExitTime" oninput="onAddInput()">
         </div>
       </div>
     </div>
+
+    <!-- 소요시간 모드 -->
     <div id="addModeDur" style="display:none">
+      <div class="form-group">
+        <label class="form-label">날짜 (입차 날짜)</label>
+        <input class="form-input" type="date" id="aDurDate" oninput="onAddInput()">
+      </div>
       <div class="form-group">
         <label class="form-label">소요 시간</label>
         <div class="dur-row">
@@ -327,6 +394,7 @@
         </div>
       </div>
     </div>
+
     <div class="calc-box" id="addCalcBox">입력하면 자동 계산됩니다</div>
     <button class="modal-submit" onclick="submitAdd()">저장</button>
     <button class="modal-cancel" onclick="closeOverlay('overlayAdd')">취소</button>
@@ -334,7 +402,7 @@
 </div>
 
 <script>
-// ★ Firebase 설정값 ★
+// ★ Firebase 설정
 const firebaseConfig = {
   apiKey:            "AIzaSyCUBVWaLPJjwGhBqLjiTfucN9MsFwESU2Q",
   authDomain:        "parking-time-c6950.firebaseapp.com",
@@ -345,11 +413,10 @@ const firebaseConfig = {
   appId:             "1:783560146338:web:6f8584fc662e8bc910c6fb"
 };
 
-const LIMIT = 9000;
+const LIMIT = 9000; // 150시간
 let db, tick, popupTimer;
 let state = { current: null, sessions: {}, total: 0 };
 let addMode = 'time';
-let currentView = 'cal';
 
 function curMK() {
   const n = new Date();
@@ -358,26 +425,36 @@ function curMK() {
 
 // ── Boot ──
 (function boot() {
-  const ready = !Object.values(firebaseConfig).some(v => String(v).startsWith('YOUR_'));
-  if (!ready) { document.getElementById('setupScreen').style.display='block'; return; }
-  firebase.initializeApp(firebaseConfig);
+  const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith('YOUR_'));
+  if (!isConfigured) {
+    document.getElementById('setupScreen').style.display = 'block';
+    return;
+  }
+  try {
+    firebase.initializeApp(firebaseConfig);
+  } catch(e) {
+    // 이미 초기화된 경우 무시
+  }
   db = firebase.database();
-  const app = document.getElementById('app');
-  app.style.display = 'flex';
+  document.getElementById('app').style.display = 'flex';
+
   const n = new Date();
   document.getElementById('monthLabel').textContent = `${n.getMonth()+1}월 한도 150시간`;
+  document.getElementById('calTitle').textContent   = `${n.getMonth()+1}월 기록`;
+
   db.ref(`parking/${curMK()}`).on('value', snap => {
     const d = snap.val() || {};
     state.sessions = d.sessions || {};
     state.total    = d.total    || 0;
     renderProgress();
     renderCalendar();
-    renderHistory();
+    renderListBody();
   });
+
   db.ref('parking/current').on('value', snap => {
-    state.current = snap.val();
+    state.current = snap.val() || null;
     renderStatus();
-    state.current?.entry ? startTick() : stopTick();
+    if (state.current?.entry) startTick(); else stopTick();
   });
 })();
 
@@ -385,18 +462,18 @@ function curMK() {
 function fmtMins(m) {
   if (m < 1) return '0분';
   const h = Math.floor(m/60), r = m%60;
-  return h > 0 ? `${h}시간 ${r > 0 ? r+'분' : ''}`.trim() : `${r}분`;
+  return h > 0 ? `${h}시간${r > 0 ? ' '+r+'분' : ''}` : `${r}분`;
 }
 function fmtElapsed(ms) {
   const s = Math.floor(ms/1000);
-  return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':');
+  return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v=>String(v).padStart(2,'0')).join(':');
 }
 function fmtDT(iso) {
   const d = new Date(iso);
   return {
     date: `${d.getMonth()+1}월 ${d.getDate()}일`,
-    time: d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}),
-    day:  d.getDate()
+    time: d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),
+    dateStr: d.toISOString().split('T')[0]
   };
 }
 function sessMinsSoFar() {
@@ -404,17 +481,6 @@ function sessMinsSoFar() {
 }
 function mkFromDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-// 자정 넘기는 경우 처리: entry date + exit time 조합, exit < entry 면 다음날
-function resolveExit(entry, exitTimeStr) {
-  const base = entry.toISOString().split('T')[0];
-  let exit = new Date(`${base}T${exitTimeStr}`);
-  if (exit <= entry) {
-    const next = new Date(entry);
-    next.setDate(next.getDate()+1);
-    exit = new Date(`${next.toISOString().split('T')[0]}T${exitTimeStr}`);
-  }
-  return exit;
 }
 function saveSess(mk, entry, exit, mins, flags) {
   const key = db.ref(`parking/${mk}/sessions`).push().key;
@@ -429,27 +495,30 @@ function saveSess(mk, entry, exit, mins, flags) {
 // ── Render ──
 function renderStatus() {
   const parked = !!state.current?.entry;
-  document.getElementById('badge').className = 'badge ' + (parked ? 'parked' : 'idle');
-  document.getElementById('badgeText').textContent = parked ? '주차중' : '대기중';
-  const entryValEl = document.getElementById('entryVal');
-  entryValEl.style.display = parked ? 'block' : 'none';
+  document.getElementById('badge').className = 'badge '+(parked?'parked':'idle');
+  document.getElementById('badgeText').textContent = parked?'주차중':'대기중';
+
+  const ev = document.getElementById('entryVal');
+  ev.style.display = parked ? 'block' : 'none';
   document.getElementById('idleHint').style.display   = parked ? 'none'  : 'block';
   document.getElementById('parkedInfo').style.display = parked ? 'block' : 'none';
   document.getElementById('btnEnter').disabled = parked;
   document.getElementById('btnExit').disabled  = !parked;
+
   if (parked) {
     const {date, time} = fmtDT(state.current.entry);
-    entryValEl.textContent = `${date} ${time}`;
+    ev.textContent = `${date} ${time}`;
   }
 }
+
 function renderProgress() {
   const used = state.total + sessMinsSoFar();
-  const rem  = Math.max(0, LIMIT-used);
+  const rem  = Math.max(0, LIMIT - used);
   const pct  = Math.min(100, (used/LIMIT)*100);
   document.getElementById('totalNum').textContent  = fmtMins(used);
-  document.getElementById('remainNum').textContent = `· 잔여 ${fmtMins(rem)}`;
+  document.getElementById('remainNum').textContent = `잔여 ${fmtMins(rem)}`;
   const fill = document.getElementById('progressFill');
-  fill.style.width = pct+'%';
+  fill.style.width = pct + '%';
   fill.className   = 'progress-fill'+(pct>=90?' danger':pct>=70?' warn':'');
   document.getElementById('progressPct').textContent = pct.toFixed(1)+'%';
 }
@@ -459,61 +528,52 @@ function renderCalendar() {
   const n = new Date();
   const year = n.getFullYear(), month = n.getMonth(), today = n.getDate();
 
-  // entryDays: 입차 날짜, exitOnlyDays: 출차만 있는 날짜 (자정 넘긴 경우)
-  const entryDays    = {}; // day → count
-  const exitOnlyDays = {}; // day → true
+  const entryDays = {}, exitOnlyDays = {};
   Object.values(state.sessions).forEach(s => {
-    const ed = new Date(s.entry);
-    const xd = new Date(s.exit);
-    if (ed.getFullYear()===year && ed.getMonth()===month) {
-      const dd = ed.getDate();
-      entryDays[dd] = (entryDays[dd]||0) + 1;
-    }
-    // 자정 넘겨서 다음날 출차인 경우, 출차 날짜에도 표시
-    if (xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()!==ed.getDate()) {
-      const xdd = xd.getDate();
-      if (!entryDays[xdd]) exitOnlyDays[xdd] = true;
-    }
+    const ed = new Date(s.entry), xd = new Date(s.exit);
+    if (ed.getFullYear()===year && ed.getMonth()===month)
+      entryDays[ed.getDate()] = (entryDays[ed.getDate()]||0)+1;
+    if (xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()!==ed.getDate())
+      if (!entryDays[xd.getDate()]) exitOnlyDays[xd.getDate()] = true;
   });
 
-  const isActiveToday = !!state.current?.entry;
-  const firstDow = new Date(year, month, 1).getDay(); // 0=Sun
+  const isParkedToday = !!state.current?.entry;
+  const firstDow    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const prevDays    = new Date(year, month, 0).getDate();
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
+
   for (let i=0; i<firstDow; i++) {
     const c = document.createElement('div');
     c.className = 'cal-cell other';
     c.innerHTML = `<span class="cal-num">${prevDays-firstDow+1+i}</span>`;
     grid.appendChild(c);
   }
+
   for (let d=1; d<=daysInMonth; d++) {
     const dow = (firstDow+d-1)%7;
     const c = document.createElement('div');
     let cls = 'cal-cell';
-    if (dow===0) cls+=' sun'; else if (dow===6) cls+=' sat';
-    if (d===today) cls+=' today';
-    const hasEntry   = !!entryDays[d];
+    if (dow===0) cls += ' sun'; else if (dow===6) cls += ' sat';
+    if (d===today) cls += ' today';
+    const hasEntry    = !!entryDays[d];
     const hasExitOnly = !!exitOnlyDays[d];
-    const isActiveTodayCell = d===today && isActiveToday && !hasEntry;
-    if (hasEntry || hasExitOnly) cls+=' has-record';
-    if (isActiveTodayCell) cls+=' active-today';
+    const activeTodayOnly = d===today && isParkedToday && !hasEntry;
+    if (hasEntry || hasExitOnly) cls += ' has-record';
     c.className = cls;
 
     let dot = '';
-    if (hasEntry)        dot = '<div class="cal-dot"></div>';
-    else if (hasExitOnly) dot = '<div class="cal-dot exit-dot"></div>'; // 빈 원 = 출차만
-    else if (isActiveTodayCell) dot = '<div class="cal-dot" style="background:var(--orange)"></div>';
+    if (hasEntry)          dot = '<div class="cal-dot"></div>';
+    else if (hasExitOnly)  dot = '<div class="cal-dot exit-only"></div>';
+    else if (activeTodayOnly) dot = '<div class="cal-dot" style="background:var(--orange)"></div>';
 
     c.innerHTML = `<span class="cal-num">${d}</span>${dot}`;
-    if (hasEntry || hasExitOnly) {
-      c.onclick = () => showDayDetail(d, year, month);
-    }
+    if (hasEntry || hasExitOnly) c.onclick = () => showDayDetail(d, year, month);
     grid.appendChild(c);
   }
-  const total = firstDow+daysInMonth;
-  const tail  = (7-(total%7))%7;
+
+  const tail = (7-(firstDow+daysInMonth)%7)%7;
   for (let d=1; d<=tail; d++) {
     const c = document.createElement('div');
     c.className = 'cal-cell other';
@@ -521,21 +581,20 @@ function renderCalendar() {
     grid.appendChild(c);
   }
 }
+
 function showDayDetail(day, year, month) {
-  // 해당 날짜에 입차하거나 출차한 세션 모두 포함
-  const sessions = Object.values(state.sessions).filter(s => {
-    const ed = new Date(s.entry);
-    const xd = new Date(s.exit);
-    const entryMatch = ed.getFullYear()===year && ed.getMonth()===month && ed.getDate()===day;
-    const exitMatch  = xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()===day;
-    return entryMatch || exitMatch;
+  const sess = Object.values(state.sessions).filter(s => {
+    const ed = new Date(s.entry), xd = new Date(s.exit);
+    return (ed.getFullYear()===year && ed.getMonth()===month && ed.getDate()===day)
+        || (xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()===day);
   });
-  const lines = sessions.map(s => {
+  const lines = sess.map(s => {
     if (s.durOnly) return `소요 시간: ${fmtMins(s.mins)}`;
     const en=fmtDT(s.entry), xd=fmtDT(s.exit);
-    const overnight = new Date(s.exit).getDate()!==new Date(s.entry).getDate();
-    const exitLabel = overnight ? `${xd.date} ${xd.time}` : xd.time;
-    return `${en.date} ${en.time} → ${exitLabel}  ${fmtMins(s.mins)}`;
+    const overnight = new Date(s.exit).getDate() !== new Date(s.entry).getDate();
+    return overnight
+      ? `${en.date} ${en.time} → ${xd.date} ${xd.time}\n${fmtMins(s.mins)}`
+      : `${en.time} → ${xd.time}  ${fmtMins(s.mins)}`;
   });
   const pop = document.getElementById('dayPopup');
   pop.textContent = `${month+1}월 ${day}일\n${lines.join('\n')}`;
@@ -544,34 +603,35 @@ function showDayDetail(day, year, month) {
   popupTimer = setTimeout(() => pop.classList.remove('show'), 3000);
 }
 
-// ── History list ──
-function renderHistory() {
-  const list    = document.getElementById('viewList');
-  const emptyEl = document.getElementById('emptyMsg');
+// ── List sheet ──
+function openListSheet()  { renderListBody(); document.getElementById('listSheet').classList.add('open'); }
+function closeListSheet() { document.getElementById('listSheet').classList.remove('open'); }
+
+function renderListBody() {
+  const body = document.getElementById('listBody');
+  body.innerHTML = '';
   const entries = Object.entries(state.sessions);
   if (!entries.length) {
-    if (emptyEl) emptyEl.style.display='block';
-    list.querySelectorAll('.session-item').forEach(e=>e.remove());
+    body.innerHTML = '<div class="empty-msg">기록이 없어요</div>';
     return;
   }
-  if (emptyEl) emptyEl.style.display='none';
-  const sorted = entries.sort((a,b) => new Date(b[1].entry)-new Date(a[1].entry));
-  const existing = [...list.querySelectorAll('.session-item')];
-  existing.forEach(e=>e.remove());
-  sorted.forEach(([key,s]) => {
-    const en=fmtDT(s.entry), ex=fmtDT(s.exit);
-    const timeStr = s.durOnly ? '소요 시간 기록' : `${en.time} → ${ex.time}`;
-    const tag = (s.manual||s.durOnly) ? '<span class="session-tag">수동</span>' : '';
+  entries.sort((a,b)=>new Date(b[1].entry)-new Date(a[1].entry)).forEach(([key,s]) => {
+    const en=fmtDT(s.entry), xd=fmtDT(s.exit);
+    const overnight = new Date(s.exit).getDate()!==new Date(s.entry).getDate();
+    const timeStr = s.durOnly ? '소요 시간 기록'
+      : overnight ? `${en.time} → (다음날) ${xd.time}`
+      : `${en.time} → ${xd.time}`;
+    const tag = (s.manual||s.durOnly)?'<span class="session-tag">수동</span>':'';
     const el = document.createElement('div');
-    el.className='session-item';
-    el.innerHTML=`<div class="session-dot"></div>
+    el.className = 'session-item';
+    el.innerHTML = `<div class="session-dot"></div>
       <div class="session-info">
-        <div class="session-date">${en.date}</div>
+        <div class="session-date">${en.date}${overnight?' ~ '+xd.date:''}</div>
         <div class="session-times">${timeStr}${tag}</div>
       </div>
       <div class="session-dur">${fmtMins(s.mins)}</div>
       <button class="session-del" onclick="delSess('${key}',${s.mins})">✕</button>`;
-    list.appendChild(el);
+    body.appendChild(el);
   });
 }
 
@@ -584,132 +644,136 @@ function startTick() {
     renderProgress();
   }, 1000);
 }
-function stopTick() { if (tick) { clearInterval(tick); tick=null; } }
-
-// ── View toggle ──
-function setView(v) {
-  currentView = v;
-  document.getElementById('viewCal').style.display  = v==='cal'  ? 'flex' : 'none';
-  document.getElementById('viewList').style.display = v==='list' ? 'block': 'none';
-  document.getElementById('btnCalView').className   = 'view-btn'+(v==='cal'  ? ' active':'');
-  document.getElementById('btnListView').className  = 'view-btn'+(v==='list' ? ' active':'');
-}
+function stopTick() { if (tick) { clearInterval(tick); tick = null; } }
 
 // ── Main actions ──
 function pressEnter() {
-  db.ref('parking/current').set({entry:new Date().toISOString()});
+  db.ref('parking/current').set({ entry: new Date().toISOString() })
+    .catch(err => alert('저장 오류: ' + err.message));
 }
 function pressExit() {
   if (!state.current?.entry) return;
-  const now=new Date(), entry=new Date(state.current.entry);
-  const mins=Math.max(1,Math.floor((now-entry)/60000));
+  const now = new Date(), entry = new Date(state.current.entry);
+  const mins = Math.max(1, Math.floor((now-entry)/60000));
   saveSess(mkFromDate(entry), entry, now, mins, {});
-  db.ref('parking/current').remove();
+  db.ref('parking/current').remove()
+    .catch(err => alert('저장 오류: ' + err.message));
 }
 function delSess(key, mins) {
   if (!confirm('이 기록을 삭제할까요?')) return;
-  const mk=curMK(), upd={};
-  upd[`parking/${mk}/sessions/${key}`]=null;
-  upd[`parking/${mk}/total`]=Math.max(0,state.total-mins);
+  const mk = curMK(), upd = {};
+  upd[`parking/${mk}/sessions/${key}`] = null;
+  upd[`parking/${mk}/total`] = Math.max(0, state.total - mins);
   db.ref().update(upd);
 }
 
 // ── Modal helpers ──
 function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
-function bgClose(id,e)    { if (e.target===document.getElementById(id)) closeOverlay(id); }
+function bgClose(id, e)   { if (e.target===document.getElementById(id)) closeOverlay(id); }
 
-// ── Modal A ──
+// ── Modal A: 출차 시간 ──
 function openExitModal() {
   if (!state.current?.entry) return;
-  const {date,time} = fmtDT(state.current.entry);
+  const {date, time, dateStr} = fmtDT(state.current.entry);
   document.getElementById('exitModalEntry').textContent = `${date} ${time}`;
-  const now=new Date();
+  // 출차 날짜 기본값: 오늘
+  const today = new Date().toISOString().split('T')[0];
+  const now   = new Date();
+  document.getElementById('eExitDate').value = today;
   document.getElementById('eExitTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   calcExitOnly();
   document.getElementById('overlayExit').classList.add('open');
 }
 function calcExitOnly() {
-  const t=document.getElementById('eExitTime').value;
-  if (!t||!state.current?.entry) return;
-  const entry=new Date(state.current.entry);
-  const exit=resolveExit(entry,t);
-  const overnight=exit.getDate()!==entry.getDate();
-  const mins=Math.floor((exit-entry)/60000);
-  document.getElementById('exitCalcBox').innerHTML = mins>0
-    ? `${overnight?'🌙 다음날 출차 · ':''}주차 시간: <strong>${fmtMins(mins)}</strong>`
-    : '<span style="color:#e74c3c">⚠️ 시간을 다시 확인해 주세요</span>';
+  const d = document.getElementById('eExitDate').value;
+  const t = document.getElementById('eExitTime').value;
+  if (!d || !t || !state.current?.entry) return;
+  const entry = new Date(state.current.entry);
+  const exit  = new Date(`${d}T${t}`);
+  const mins  = Math.floor((exit - entry) / 60000);
+  const overnight = exit.getDate() !== entry.getDate() || d !== entry.toISOString().split('T')[0];
+  document.getElementById('exitCalcBox').innerHTML = mins > 0
+    ? `${overnight?'🌙 ':''}주차 시간: <strong>${fmtMins(mins)}</strong>`
+    : '<span style="color:#e74c3c">⚠️ 출차가 입차보다 빠릅니다</span>';
 }
 function submitExitOnly() {
-  const t=document.getElementById('eExitTime').value;
-  if (!t||!state.current?.entry) { alert('출차 시각을 입력해주세요'); return; }
-  const entry=new Date(state.current.entry);
-  const exit=resolveExit(entry,t);
-  const mins=Math.floor((exit-entry)/60000);
-  if (mins<=0) { alert('출차 시각이 입차보다 빠릅니다'); return; }
+  const d = document.getElementById('eExitDate').value;
+  const t = document.getElementById('eExitTime').value;
+  if (!d || !t) { alert('날짜와 시각을 입력해주세요'); return; }
+  const entry = new Date(state.current.entry);
+  const exit  = new Date(`${d}T${t}`);
+  const mins  = Math.floor((exit - entry) / 60000);
+  if (mins <= 0) { alert('출차 시각이 입차보다 빠릅니다'); return; }
   saveSess(mkFromDate(entry), entry, exit, mins, {});
   db.ref('parking/current').remove();
   closeOverlay('overlayExit');
 }
 
-// ── Modal B ──
+// ── Modal B: 직접 추가 ──
 function openAddModal() {
-  document.getElementById('aDate').value  = new Date().toISOString().split('T')[0];
-  document.getElementById('aEntry').value = '';
-  document.getElementById('aExit').value  = '';
-  document.getElementById('aDurH').value  = '';
-  document.getElementById('aDurM').value  = '';
-  document.getElementById('addCalcBox').innerHTML='입력하면 자동 계산됩니다';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('aEntryDate').value = today;
+  document.getElementById('aEntryTime').value = '';
+  document.getElementById('aExitDate').value  = today;
+  document.getElementById('aExitTime').value  = '';
+  document.getElementById('aDurDate').value   = today;
+  document.getElementById('aDurH').value      = '';
+  document.getElementById('aDurM').value      = '';
+  document.getElementById('addCalcBox').innerHTML = '입력하면 자동 계산됩니다';
   setAddMode('time');
   document.getElementById('overlayAdd').classList.add('open');
 }
 function setAddMode(m) {
-  addMode=m;
-  document.getElementById('addModeTime').style.display = m==='time'?'block':'none';
-  document.getElementById('addModeDur').style.display  = m==='dur' ?'block':'none';
+  addMode = m;
+  document.getElementById('addModeTime').style.display = m==='time' ? 'block' : 'none';
+  document.getElementById('addModeDur').style.display  = m==='dur'  ? 'block' : 'none';
   document.getElementById('modeTimeBtn').className = 'mode-btn'+(m==='time'?' active':'');
   document.getElementById('modeDurBtn').className  = 'mode-btn'+(m==='dur' ?' active':'');
-  document.getElementById('addCalcBox').innerHTML='입력하면 자동 계산됩니다';
+  document.getElementById('addCalcBox').innerHTML = '입력하면 자동 계산됩니다';
 }
 function onAddInput() {
-  const date=document.getElementById('aDate').value;
-  const box=document.getElementById('addCalcBox');
-  if (addMode==='time') {
-    const en=document.getElementById('aEntry').value;
-    const ex=document.getElementById('aExit').value;
-    if (!date||!en||!ex) return;
-    const entry=new Date(`${date}T${en}`);
-    const exit=resolveExit(entry,ex);
-    const overnight=exit.getDate()!==entry.getDate();
-    const mins=Math.floor((exit-entry)/60000);
-    box.innerHTML = mins>0
-      ? `${overnight?'🌙 다음날 출차 · ':''}주차 시간: <strong>${fmtMins(mins)}</strong>`
+  const box = document.getElementById('addCalcBox');
+  if (addMode === 'time') {
+    const ed = document.getElementById('aEntryDate').value;
+    const et = document.getElementById('aEntryTime').value;
+    const xd = document.getElementById('aExitDate').value;
+    const xt = document.getElementById('aExitTime').value;
+    if (!ed || !et || !xd || !xt) return;
+    const entry = new Date(`${ed}T${et}`);
+    const exit  = new Date(`${xd}T${xt}`);
+    const mins  = Math.floor((exit - entry) / 60000);
+    const overnight = xd !== ed;
+    box.innerHTML = mins > 0
+      ? `${overnight?'🌙 ':''}주차 시간: <strong>${fmtMins(mins)}</strong>`
       : '<span style="color:#e74c3c">⚠️ 출차가 입차보다 빠릅니다</span>';
   } else {
-    const h=parseInt(document.getElementById('aDurH').value)||0;
-    const m=parseInt(document.getElementById('aDurM').value)||0;
-    const mins=h*60+m;
-    box.innerHTML = mins>0?`추가할 시간: <strong>${fmtMins(mins)}</strong>`:'시간 또는 분을 입력해 주세요';
+    const h = parseInt(document.getElementById('aDurH').value)||0;
+    const m = parseInt(document.getElementById('aDurM').value)||0;
+    const mins = h*60+m;
+    box.innerHTML = mins > 0 ? `추가할 시간: <strong>${fmtMins(mins)}</strong>` : '시간 또는 분을 입력해 주세요';
   }
 }
 function submitAdd() {
-  const date=document.getElementById('aDate').value;
-  if (!date) { alert('날짜를 입력해주세요'); return; }
-  if (addMode==='time') {
-    const en=document.getElementById('aEntry').value;
-    const ex=document.getElementById('aExit').value;
-    if (!en||!ex) { alert('입차와 출차 시각을 모두 입력해주세요'); return; }
-    const entry=new Date(`${date}T${en}`);
-    const exit=resolveExit(entry,ex);
-    const mins=Math.floor((exit-entry)/60000);
-    if (mins<=0) { alert('출차 시각이 입차보다 빠릅니다'); return; }
+  if (addMode === 'time') {
+    const ed = document.getElementById('aEntryDate').value;
+    const et = document.getElementById('aEntryTime').value;
+    const xd = document.getElementById('aExitDate').value;
+    const xt = document.getElementById('aExitTime').value;
+    if (!ed||!et||!xd||!xt) { alert('모든 날짜와 시각을 입력해주세요'); return; }
+    const entry = new Date(`${ed}T${et}`);
+    const exit  = new Date(`${xd}T${xt}`);
+    const mins  = Math.floor((exit - entry) / 60000);
+    if (mins <= 0) { alert('출차가 입차보다 빠릅니다'); return; }
     saveSess(mkFromDate(entry), entry, exit, mins, {manual:true});
   } else {
-    const h=parseInt(document.getElementById('aDurH').value)||0;
-    const m=parseInt(document.getElementById('aDurM').value)||0;
-    const mins=h*60+m;
-    if (mins<=0) { alert('소요 시간을 입력해주세요'); return; }
-    const entry=new Date(`${date}T12:00:00`);
-    const exit=new Date(entry.getTime()+mins*60000);
+    const date = document.getElementById('aDurDate').value;
+    if (!date) { alert('날짜를 입력해주세요'); return; }
+    const h = parseInt(document.getElementById('aDurH').value)||0;
+    const m = parseInt(document.getElementById('aDurM').value)||0;
+    const mins = h*60+m;
+    if (mins <= 0) { alert('소요 시간을 입력해주세요'); return; }
+    const entry = new Date(`${date}T12:00:00`);
+    const exit  = new Date(entry.getTime()+mins*60000);
     saveSess(mkFromDate(entry), entry, exit, mins, {manual:true, durOnly:true});
   }
   closeOverlay('overlayAdd');
