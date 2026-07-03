@@ -342,7 +342,12 @@
 <div class="overlay" id="overlayAdd" onclick="bgClose('overlayAdd',event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">기록 직접 추가</div>
+    <div class="modal-title" id="addModalTitle">기록 직접 추가</div>
+    <!-- 선택한 날짜에 기존 기록이 있으면 여기에 표시 -->
+    <div id="dateRecap" class="entry-recap" style="display:none">
+      <div class="recap-label" id="dateRecapLabel">이 날 기존 기록</div>
+      <div class="recap-val" id="dateRecapBody" style="font-size:12px;line-height:1.8;font-weight:500"></div>
+    </div>
     <div class="mode-toggle">
       <button class="mode-btn active" id="modeTimeBtn" onclick="setAddMode('time')">입차·출차 시각 입력</button>
       <button class="mode-btn"        id="modeDurBtn"  onclick="setAddMode('dur')">소요 시간만 입력</button>
@@ -569,7 +574,8 @@ function renderCalendar() {
     else if (activeTodayOnly) dot = '<div class="cal-dot" style="background:var(--orange)"></div>';
 
     c.innerHTML = `<span class="cal-num">${d}</span>${dot}`;
-    if (hasEntry || hasExitOnly) c.onclick = () => showDayDetail(d, year, month);
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    c.onclick = () => openAddForDate(dateStr, d, year, month);
     grid.appendChild(c);
   }
 
@@ -582,25 +588,33 @@ function renderCalendar() {
   }
 }
 
-function showDayDetail(day, year, month) {
+function openAddForDate(dateStr, day, year, month) {
+  // 해당 날짜에 관련된 기존 기록
   const sess = Object.values(state.sessions).filter(s => {
     const ed = new Date(s.entry), xd = new Date(s.exit);
     return (ed.getFullYear()===year && ed.getMonth()===month && ed.getDate()===day)
         || (xd.getFullYear()===year && xd.getMonth()===month && xd.getDate()===day);
   });
-  const lines = sess.map(s => {
-    if (s.durOnly) return `소요 시간: ${fmtMins(s.mins)}`;
-    const en=fmtDT(s.entry), xd=fmtDT(s.exit);
-    const overnight = new Date(s.exit).getDate() !== new Date(s.entry).getDate();
-    return overnight
-      ? `${en.date} ${en.time} → ${xd.date} ${xd.time}\n${fmtMins(s.mins)}`
-      : `${en.time} → ${xd.time}  ${fmtMins(s.mins)}`;
-  });
-  const pop = document.getElementById('dayPopup');
-  pop.textContent = `${month+1}월 ${day}일\n${lines.join('\n')}`;
-  pop.classList.add('show');
-  clearTimeout(popupTimer);
-  popupTimer = setTimeout(() => pop.classList.remove('show'), 3000);
+
+  // 기존 기록 recap 표시
+  const recap = document.getElementById('dateRecap');
+  if (sess.length) {
+    document.getElementById('dateRecapLabel').textContent = `${month+1}월 ${day}일 기존 기록`;
+    document.getElementById('dateRecapBody').innerHTML = sess.map(s => {
+      if (s.durOnly) return `• 소요 시간 ${fmtMins(s.mins)}`;
+      const en=fmtDT(s.entry), xd=fmtDT(s.exit);
+      const overnight = new Date(s.exit).getDate()!==new Date(s.entry).getDate();
+      return overnight
+        ? `• ${en.date} ${en.time} → ${xd.date} ${xd.time}  <b>${fmtMins(s.mins)}</b>`
+        : `• ${en.time} → ${xd.time}  <b>${fmtMins(s.mins)}</b>`;
+    }).join('<br>');
+    recap.style.display = 'block';
+  } else {
+    recap.style.display = 'none';
+  }
+
+  document.getElementById('addModalTitle').textContent = `${month+1}월 ${day}일 기록 추가`;
+  openAddModal(dateStr);
 }
 
 // ── List sheet ──
@@ -710,16 +724,20 @@ function submitExitOnly() {
 }
 
 // ── Modal B: 직접 추가 ──
-function openAddModal() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('aEntryDate').value = today;
+function openAddModal(prefillDate) {
+  const date = prefillDate || new Date().toISOString().split('T')[0];
+  document.getElementById('aEntryDate').value = date;
   document.getElementById('aEntryTime').value = '';
-  document.getElementById('aExitDate').value  = today;
+  document.getElementById('aExitDate').value  = date;
   document.getElementById('aExitTime').value  = '';
-  document.getElementById('aDurDate').value   = today;
+  document.getElementById('aDurDate').value   = date;
   document.getElementById('aDurH').value      = '';
   document.getElementById('aDurM').value      = '';
   document.getElementById('addCalcBox').innerHTML = '입력하면 자동 계산됩니다';
+  if (!prefillDate) {
+    document.getElementById('addModalTitle').textContent = '기록 직접 추가';
+    document.getElementById('dateRecap').style.display = 'none';
+  }
   setAddMode('time');
   document.getElementById('overlayAdd').classList.add('open');
 }
