@@ -660,8 +660,10 @@ function drawSessionLines() {
     const monthStart = new Date(year, month, 1);
     const monthEnd   = new Date(year, month+1, 0);
     if (xdMid < monthStart || edMid > monthEnd) return;
-    const startDay = Math.max(edMid, monthStart).getDate();
-    const endDay   = Math.min(xdMid, monthEnd).getDate();
+    const clampedStart  = edMid < monthStart ? monthStart : edMid;
+    const clampedEnd    = xdMid > monthEnd   ? monthEnd   : xdMid;
+    const startDay      = clampedStart.getDate();
+    const endDay        = clampedEnd.getDate();
     const isActualStart = edMid >= monthStart;
     const isActualEnd   = xdMid <= monthEnd;
 
