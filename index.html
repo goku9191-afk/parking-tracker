@@ -138,17 +138,30 @@
     .cal-cell.has-record:active { opacity:.65; }
 
     /* ── 점 / 선 인디케이터 ── */
-    .cal-bar { height:3px; flex-shrink:0; border-radius:0; }
+    /* 셀이 overflow:visible이어야 선이 gap을 넘어 연결됨 */
+    .cal-cell { overflow:visible; }
     /* 당일: 작은 원형 점 */
-    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); }
-    /* 다박자 스팬: 시작(오른쪽 절반), 중간(전체), 끝(왼쪽 절반) */
-    .cal-bar.line-s { width:50%; margin-left:50%; background:var(--green); border-radius:2px 0 0 2px; }
-    .cal-bar.line-m { width:100%; background:var(--green); }
-    .cal-bar.line-e { width:50%; background:var(--green); border-radius:0 2px 2px 0; }
-    /* 줄 끝 처리: 주 마지막(토) → 오른쪽 둥글게, 주 처음(일) → 왼쪽 둥글게 */
-    .cal-bar.cap-r  { border-radius:0 2px 2px 0 !important; }
-    .cal-bar.cap-l  { border-radius:2px 0 0 2px !important; }
-    .cal-bar.cap-lr { border-radius:2px !important; }
+    .cal-bar.dot { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    /* 선 전용 래퍼: 셀 전체 너비 차지, 내부 absolute로 gap 넘어 연결 */
+    .bar-row {
+      align-self:stretch; height:4px; flex-shrink:0;
+      position:relative; overflow:visible;
+    }
+    /* 선들은 bar-row 기준 absolute — left/right에 -3px 써서 3px gap을 채움 */
+    .cal-bar.line-s,
+    .cal-bar.line-m,
+    .cal-bar.line-e { position:absolute; top:0; height:100%; background:var(--green); }
+    /* 시작: 셀 중앙 → 오른쪽 끝 +3px (다음 셀 gap까지) */
+    .cal-bar.line-s { left:50%; right:-3px; border-radius:2px 0 0 2px; }
+    /* 중간: 왼쪽 끝 -3px → 오른쪽 끝 +3px */
+    .cal-bar.line-m { left:-3px; right:-3px; border-radius:0; }
+    /* 끝: 왼쪽 끝 -3px → 셀 중앙 */
+    .cal-bar.line-e { left:-3px; right:50%; border-radius:0 2px 2px 0; }
+    /* 주 경계 cap: 줄이 계속되지만 행이 바뀜 → 끝을 둥글게 */
+    .cal-bar.line-s.row-end   { right:0;  border-radius:2px; }
+    .cal-bar.line-m.row-start { left:0;   border-radius:2px 0 0 2px; }
+    .cal-bar.line-m.row-end   { right:0;  border-radius:0 2px 2px 0; }
+    .cal-bar.line-e.row-start { left:0;   border-radius:2px; }
 
     /* Day detail popup */
     .day-popup {
@@ -602,6 +615,7 @@ function renderCalendar() {
     const m = markers[d];
     if (m) cls += ' has-record';
     c.className = cls;
+    if (m?.lines?.length) c.style.zIndex = '1'; // 선이 이웃 셀 위에 오도록
 
     // 인디케이터 HTML 생성
     let indHTML = '';
@@ -612,22 +626,22 @@ function renderCalendar() {
       // 점 (당일 기록)
       for (let i=0; i<m.dots; i++)
         indHTML += '<div class="cal-bar dot"></div>';
-      // 선 (다박자 기록)
+      // 선 (다박자 기록) — bar-row 래퍼로 감싸 gap을 넘어 연결
       m.lines.forEach(type => {
         const isSun = dow===0, isSat = dow===6;
         let barCls = 'cal-bar ';
         if (type==='s') {
           barCls += 'line-s';
-          if (isSat) barCls += ' cap-lr'; // 시작+끝이 같은 주 마지막
+          if (isSat) barCls += ' row-end';
         } else if (type==='e') {
           barCls += 'line-e';
-          if (isSun) barCls += ' cap-lr'; // 끝이 주 첫날
+          if (isSun) barCls += ' row-start';
         } else {
           barCls += 'line-m';
-          if (isSun) barCls += ' cap-l';
-          else if (isSat) barCls += ' cap-r';
+          if (isSun) barCls += ' row-start';
+          else if (isSat) barCls += ' row-end';
         }
-        indHTML += `<div class="${barCls}"></div>`;
+        indHTML += `<div class="bar-row"><div class="${barCls}"></div></div>`;
       });
     }
 
