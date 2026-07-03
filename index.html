@@ -633,81 +633,88 @@ function renderCalendar() {
 function drawSessionLines() {
   const grid    = document.getElementById('calGrid');
   const linesEl = document.getElementById('calLines');
-  if (!linesEl) return;
+  if (!linesEl || !grid) return;
+
+  // 그리드 너비가 0이면 아직 레이아웃 미완성 → 재시도
+  const gridW = grid.offsetWidth;
+  if (!gridW) { setTimeout(drawSessionLines, 50); return; }
+
   linesEl.innerHTML = '';
-
-  const wrap     = linesEl.parentElement; // .cal-wrap
-  const wrapRect = wrap.getBoundingClientRect();
-
-  // day → 셀 요소 매핑
-  const dayToCell = {};
-  Array.from(grid.children).forEach(cell => {
-    const d = parseInt(cell.dataset.day);
-    if (!isNaN(d)) dayToCell[d] = cell;
-  });
 
   const n = new Date();
   const year = n.getFullYear(), month = n.getMonth();
+  const firstDow    = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
 
-  Object.values(state.sessions).forEach(s => {
-    const ed   = new Date(s.entry);
-    const xd   = new Date(s.exit);
+  // 셀 위치를 수학적으로 계산 (getBoundingClientRect 불필요)
+  const gap   = 3;
+  const cellW = (gridW - 6 * gap) / 7;
+  const cellH = cellW; // aspect-ratio:1
+
+  function cellBox(day) {
+    const pos = firstDow + day - 1;
+    const col = pos % 7, row = Math.floor(pos / 7);
+    return {
+      left:   col * (cellW + gap),
+      right:  col * (cellW + gap) + cellW,
+      top:    row * (cellH + gap),
+      bottom: row * (cellH + gap) + cellH,
+      row
+    };
+  }
+
+  // 다박자 세션만 입차 순으로 정렬
+  const multi = Object.values(state.sessions).filter(s => {
+    const ed = new Date(s.entry), xd = new Date(s.exit);
+    return new Date(ed.getFullYear(), ed.getMonth(), ed.getDate()).getTime()
+        !== new Date(xd.getFullYear(), xd.getMonth(), xd.getDate()).getTime();
+  }).sort((a, b) => new Date(a.entry) - new Date(b.entry));
+
+  const lineH = 4, lineSpacing = 7;
+
+  multi.forEach((s, idx) => {
+    const ed    = new Date(s.entry), xd = new Date(s.exit);
     const edMid = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
     const xdMid = new Date(xd.getFullYear(), xd.getMonth(), xd.getDate());
-    if (edMid.getTime() === xdMid.getTime()) return; // 당일 → 점만
 
-    // 이번 달 범위로 클램프
     const monthStart = new Date(year, month, 1);
     const monthEnd   = new Date(year, month+1, 0);
     if (xdMid < monthStart || edMid > monthEnd) return;
-    const clampedStart  = edMid < monthStart ? monthStart : edMid;
-    const clampedEnd    = xdMid > monthEnd   ? monthEnd   : xdMid;
-    const startDay      = clampedStart.getDate();
-    const endDay        = clampedEnd.getDate();
+
+    const sDay = (edMid < monthStart ? monthStart : edMid).getDate();
+    const eDay = (xdMid > monthEnd   ? monthEnd   : xdMid).getDate();
     const isActualStart = edMid >= monthStart;
     const isActualEnd   = xdMid <= monthEnd;
 
-    // 행별로 선 분할
-    let curDay = startDay;
-    while (curDay <= endDay) {
-      const startCell = dayToCell[curDay];
-      if (!startCell) { curDay++; continue; }
-      const startCR = startCell.getBoundingClientRect();
+    // 세션마다 y 오프셋 누적 (먼저 온 세션이 아래, 나중이 위)
+    const yOff = 4 + idx * lineSpacing;
 
-      // 같은 행의 마지막 날 찾기
-      let rowEndDay = curDay;
-      while (rowEndDay < endDay) {
-        const nextCell = dayToCell[rowEndDay + 1];
-        if (!nextCell) break;
-        if (Math.abs(nextCell.getBoundingClientRect().top - startCR.top) > 5) break;
-        rowEndDay++;
+    let cur = sDay;
+    while (cur <= eDay && cur <= daysInMonth) {
+      const sBox = cellBox(cur);
+
+      // 같은 행에서 이 세션이 이어지는 마지막 날
+      let rowEnd = cur;
+      while (rowEnd < eDay && rowEnd < daysInMonth) {
+        if (cellBox(rowEnd + 1).row !== sBox.row) break;
+        rowEnd++;
       }
 
-      const endCell = dayToCell[rowEndDay];
-      const endCR   = endCell.getBoundingClientRect();
+      const eBox       = cellBox(rowEnd);
+      const segStart   = (cur    === sDay) && isActualStart;
+      const segEnd     = (rowEnd === eDay) && isActualEnd;
+      const x1 = segStart ? sBox.left + cellW / 2 : sBox.left;
+      const x2 = segEnd   ? eBox.right - cellW / 2 : eBox.right;
+      const y  = sBox.bottom - yOff - lineH;
 
-      const segIsStart = (curDay === startDay) && isActualStart;
-      const segIsEnd   = (rowEndDay === endDay) && isActualEnd;
-
-      const lineH  = 4;
-      // Y: 모든 셀의 bottom 기준으로 동일하게 계산 (startCR 기준)
-      const lineY  = startCR.bottom - wrapRect.top - lineH - 4;
-      const lineX1 = segIsStart
-        ? startCR.left - wrapRect.left + startCR.width / 2
-        : startCR.left - wrapRect.left;
-      const lineX2 = segIsEnd
-        ? endCR.right  - wrapRect.left - endCR.width / 2
-        : endCR.right  - wrapRect.left;
-
-      const rTL = segIsStart ? '2px' : '0';
-      const rTR = segIsEnd   ? '2px' : '0';
+      const rTL = segStart ? '2px' : '0', rTR = segEnd ? '2px' : '0';
       const div = document.createElement('div');
-      div.style.cssText = `position:absolute;top:${lineY}px;left:${lineX1}px;`
-        + `width:${lineX2-lineX1}px;height:${lineH}px;`
+      div.style.cssText = `position:absolute;top:${y}px;left:${x1}px;`
+        + `width:${x2 - x1}px;height:${lineH}px;`
         + `background:var(--green);border-radius:${rTL} ${rTR} ${rTR} ${rTL};`;
       linesEl.appendChild(div);
 
-      curDay = rowEndDay + 1;
+      cur = rowEnd + 1;
     }
   });
 }
