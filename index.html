@@ -154,13 +154,28 @@
     }
     .day-popup.show { display:block; }
 
-    /* Add button */
-    .add-btn {
+    /* 하단 빠른 입력 영역 */
+    .quick-row {
       flex-shrink:0;
-      padding:11px; background:none; border:1.5px dashed #d4dae6; border-radius:14px;
-      font-family:inherit; font-size:13px; font-weight:600; color:var(--text3); cursor:pointer;
+      background:var(--card); border-radius:14px;
+      padding:10px 12px; display:flex; flex-direction:column; gap:8px;
     }
-    .add-btn:active { border-color:var(--blue); color:var(--blue); }
+    .quick-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .quick-btn {
+      padding:10px 8px; border:1.5px solid #d4dae6; border-radius:12px;
+      background:#fff; font-family:inherit; font-size:13px; font-weight:700;
+      color:var(--text2); cursor:pointer; display:flex; align-items:center;
+      justify-content:center; gap:5px;
+    }
+    .quick-btn:active { border-color:var(--blue); color:var(--blue); background:#f0f4ff; }
+    /* 소요시간 인라인 입력 */
+    .dur-inline { display:none; align-items:center; gap:6px; flex-wrap:wrap; }
+    .dur-inline.open { display:flex; }
+    .dur-inline input[type=date] { flex:1; min-width:0; padding:7px 8px; border:1.5px solid #d4dae6; border-radius:9px; font-family:inherit; font-size:13px; }
+    .dur-num { width:48px; padding:7px 6px; border:1.5px solid #d4dae6; border-radius:9px; font-family:inherit; font-size:15px; font-weight:700; text-align:center; }
+    .dur-unit-lbl { font-size:13px; font-weight:600; color:var(--text2); }
+    .dur-save-btn { padding:7px 14px; background:var(--green); color:#fff; border:none; border-radius:9px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+    .dur-save-btn:active { opacity:.8; }
 
     /* ── Modals ── */
     .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s; }
@@ -301,8 +316,21 @@
     </div>
   </div>
 
-  <!-- 기록 추가 -->
-  <button class="add-btn" onclick="openAddModal()">✏️ 깜빡한 기록 직접 추가</button>
+  <!-- 빠른 입력 -->
+  <div class="quick-row">
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="openAddModal()">✏️ 수동 기록</button>
+      <button class="quick-btn" id="durToggleBtn" onclick="toggleDurInline()">⏱ 소요시간 입력</button>
+    </div>
+    <div class="dur-inline" id="durInline">
+      <input type="date" id="qDurDate">
+      <input class="dur-num" type="number" id="qDurH" min="0" max="23" placeholder="0">
+      <span class="dur-unit-lbl">시간</span>
+      <input class="dur-num" type="number" id="qDurM" min="0" max="59" placeholder="0">
+      <span class="dur-unit-lbl">분</span>
+      <button class="dur-save-btn" onclick="saveQuickDur()">저장</button>
+    </div>
+  </div>
 
 </div>
 
@@ -852,6 +880,31 @@ function submitExitOnly() {
   saveSess(mkFromDate(entry), entry, exit, mins, {});
   db.ref('parking/current').remove();
   closeOverlay('overlayExit');
+}
+
+// ── 소요시간 인라인 ──
+function toggleDurInline() {
+  const el  = document.getElementById('durInline');
+  const btn = document.getElementById('durToggleBtn');
+  const open = el.classList.toggle('open');
+  btn.style.borderColor = open ? 'var(--blue)' : '';
+  btn.style.color       = open ? 'var(--blue)' : '';
+  if (open) {
+    document.getElementById('qDurDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('qDurH').value = '';
+    document.getElementById('qDurM').value = '';
+    document.getElementById('qDurH').focus();
+  }
+}
+function saveQuickDur() {
+  const dateVal = document.getElementById('qDurDate').value;
+  const h = parseInt(document.getElementById('qDurH').value) || 0;
+  const m = parseInt(document.getElementById('qDurM').value) || 0;
+  const mins = h * 60 + m;
+  if (!dateVal || mins < 1) { alert('날짜와 시간을 입력해주세요'); return; }
+  const base = new Date(dateVal + 'T12:00:00');
+  saveSess(mkFromDate(base), base, base, mins, { durOnly: true });
+  toggleDurInline();
 }
 
 // ── Modal B: 직접 추가 ──
