@@ -698,24 +698,41 @@ function drawSessionLines() {
         !== new Date(xd.getFullYear(), xd.getMonth(), xd.getDate()).getTime();
   }).sort((a, b) => new Date(a.entry) - new Date(b.entry));
 
-  const lineH = 4, lineSpacing = 7;
+  const monthStart = new Date(year, month, 1);
+  const monthEnd   = new Date(year, month+1, 0);
 
-  multi.forEach((s, idx) => {
+  // 이 달에 보이는 세션만 day 범위로 정리
+  const segs = [];
+  multi.forEach(s => {
     const ed    = new Date(s.entry), xd = new Date(s.exit);
     const edMid = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
     const xdMid = new Date(xd.getFullYear(), xd.getMonth(), xd.getDate());
-
-    const monthStart = new Date(year, month, 1);
-    const monthEnd   = new Date(year, month+1, 0);
     if (xdMid < monthStart || edMid > monthEnd) return;
+    segs.push({
+      sDay: (edMid < monthStart ? monthStart : edMid).getDate(),
+      eDay: (xdMid > monthEnd   ? monthEnd   : xdMid).getDate(),
+      isActualStart: edMid >= monthStart,
+      isActualEnd:   xdMid <= monthEnd
+    });
+  });
 
-    const sDay = (edMid < monthStart ? monthStart : edMid).getDate();
-    const eDay = (xdMid > monthEnd   ? monthEnd   : xdMid).getDate();
-    const isActualStart = edMid >= monthStart;
-    const isActualEnd   = xdMid <= monthEnd;
+  // ★ 레인 배정: 날짜가 겹치지 않는 세션은 모두 같은(맨 아래) 레인 → 항상 숫자 바로 아래
+  //    같은 날을 공유하는 세션만 한 칸씩 위로 쌓음. (예전엔 전역 순번으로 쌓아 숫자를 뚫고 올라감)
+  const laneEnd = [];
+  segs.forEach(seg => {
+    let lane = 0;
+    while (lane < laneEnd.length && laneEnd[lane] >= seg.sDay) lane++;
+    seg.lane = lane;
+    laneEnd[lane] = seg.eDay;
+  });
 
-    // 먼저 온 세션이 위(높은 위치), 나중이 아래
-    const yOff = 4 + (multi.length - 1 - idx) * lineSpacing;
+  const lineH = 4, lineSpacing = 6, baseOff = 6;
+
+  segs.forEach(seg => {
+    const { sDay, eDay, isActualStart, isActualEnd } = seg;
+
+    // 레인 0 = 숫자 바로 아래, 겹칠 때만 위로
+    const yOff = baseOff + seg.lane * lineSpacing;
 
     let cur = sDay;
     while (cur <= eDay && cur <= daysInMonth) {
