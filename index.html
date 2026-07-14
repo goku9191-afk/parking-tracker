@@ -664,33 +664,32 @@ function drawSessionLines() {
   const linesEl = document.getElementById('calLines');
   if (!linesEl || !grid) return;
 
-  // 그리드 너비가 0이면 아직 레이아웃 미완성 → 재시도
-  const gridW = grid.offsetWidth;
-  if (!gridW) { setTimeout(drawSessionLines, 50); return; }
+  // 그리드가 아직 안 그려졌으면(너비 0) 레이아웃 미완성 → 재시도
+  const gridRect = grid.getBoundingClientRect();
+  if (!gridRect.width) { setTimeout(drawSessionLines, 50); return; }
 
   linesEl.innerHTML = '';
 
   const n = new Date();
   const year = n.getFullYear(), month = n.getMonth();
-  const firstDow    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
 
-  // 셀 위치를 수학적으로 계산 (getBoundingClientRect 불필요)
-  const gap   = 3;
-  const cellW = (gridW - 6 * gap) / 7;
-  const cellH = cellW; // aspect-ratio:1
-
-  function cellBox(day) {
-    const pos = firstDow + day - 1;
-    const col = pos % 7, row = Math.floor(pos / 7);
-    return {
-      left:   col * (cellW + gap),
-      right:  col * (cellW + gap) + cellW,
-      top:    row * (cellH + gap),
-      bottom: row * (cellH + gap) + cellH,
-      row
+  // ★ 셀 위치를 "수학 계산"이 아니라 실제 렌더된 DOM에서 측정.
+  //    aspect-ratio·1fr 그리드는 브라우저가 칸마다 서브픽셀을 반올림하는데,
+  //    계산식(cellW·cellH)은 그 반올림을 못 따라가서 선이 칸과 어긋나 삐뚤빼뚤해짐.
+  const box = {};
+  grid.querySelectorAll('.cal-cell[data-day]').forEach(cell => {
+    const d = +cell.dataset.day, r = cell.getBoundingClientRect();
+    box[d] = {
+      left:   r.left   - gridRect.left,
+      right:  r.right  - gridRect.left,
+      top:    r.top    - gridRect.top,
+      bottom: r.bottom - gridRect.top,
+      width:  r.width,
+      row:    Math.round(r.top - gridRect.top)   // 같은 주(행) 판별용
     };
-  }
+  });
+  const sameRow = (a, b) => box[a] && box[b] && box[a].row === box[b].row;
 
   // 다박자 세션만 입차 순으로 정렬
   const multi = Object.values(state.sessions).filter(s => {
@@ -720,20 +719,18 @@ function drawSessionLines() {
 
     let cur = sDay;
     while (cur <= eDay && cur <= daysInMonth) {
-      const sBox = cellBox(cur);
+      const sBox = box[cur];
+      if (!sBox) break;
 
-      // 같은 행에서 이 세션이 이어지는 마지막 날
+      // 같은 행(주)에서 이 세션이 이어지는 마지막 날
       let rowEnd = cur;
-      while (rowEnd < eDay && rowEnd < daysInMonth) {
-        if (cellBox(rowEnd + 1).row !== sBox.row) break;
-        rowEnd++;
-      }
+      while (rowEnd < eDay && rowEnd < daysInMonth && sameRow(rowEnd + 1, cur)) rowEnd++;
 
-      const eBox       = cellBox(rowEnd);
+      const eBox       = box[rowEnd];
       const segStart   = (cur    === sDay) && isActualStart;
       const segEnd     = (rowEnd === eDay) && isActualEnd;
-      const x1 = segStart ? sBox.left + cellW / 2 : sBox.left;
-      const x2 = segEnd   ? eBox.right - cellW / 2 : eBox.right;
+      const x1 = segStart ? sBox.left  + sBox.width / 2 : sBox.left;
+      const x2 = segEnd   ? eBox.right - eBox.width / 2 : eBox.right;
       const y  = sBox.bottom - yOff - lineH;
 
       const rTL = segStart ? '2px' : '0', rTR = segEnd ? '2px' : '0';
@@ -747,6 +744,9 @@ function drawSessionLines() {
     }
   });
 }
+
+// 화면 크기가 바뀌면 셀 위치가 달라지므로 선을 다시 그림
+window.addEventListener('resize', () => requestAnimationFrame(drawSessionLines));
 
 function openAddForDate(dateStr, day, year, month) {
   // 해당 날짜에 관련된 기존 기록
